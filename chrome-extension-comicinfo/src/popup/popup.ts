@@ -103,6 +103,8 @@ async function autofillFromDmmDoujin() {
             (document.getElementById('form-number') as HTMLInputElement).value = data.number;
             (document.getElementById('form-agerating') as HTMLSelectElement).value = data.ageRating;
             (document.getElementById('form-manga') as HTMLSelectElement).value = data.manga;
+            // form-formatを常に'ComicInfo'に設定
+            (document.getElementById('form-format') as HTMLInputElement | HTMLSelectElement).value = 'ComicInfo';
         }
     );
 }
@@ -203,6 +205,8 @@ async function autofillFromDmmFanzaBooks() {
             (document.getElementById('form-number') as HTMLInputElement).value = data.number;
             (document.getElementById('form-agerating') as HTMLSelectElement).value = data.ageRating;
             (document.getElementById('form-manga') as HTMLSelectElement).value = data.manga;
+            // form-formatを常に'ComicInfo'に設定
+            (document.getElementById('form-format') as HTMLInputElement | HTMLSelectElement).value = 'ComicInfo';
         }
     );
 }
@@ -322,6 +326,8 @@ async function autofillFromToranoana() {
             (document.getElementById('form-number') as HTMLInputElement).value = data.number;
             (document.getElementById('form-agerating') as HTMLSelectElement).value = data.ageRating;
             (document.getElementById('form-manga') as HTMLSelectElement).value = data.manga;
+            // form-formatを常に'ComicInfo'に設定
+            (document.getElementById('form-format') as HTMLInputElement | HTMLSelectElement).value = 'ComicInfo';
         }
     );
 }
@@ -445,6 +451,8 @@ async function autofillFromMelonbooks() {
             (document.getElementById('form-number') as HTMLInputElement).value = data.number;
             (document.getElementById('form-agerating') as HTMLSelectElement).value = data.ageRating;
             (document.getElementById('form-manga') as HTMLSelectElement).value = data.manga;
+            // form-formatを常に'ComicInfo'に設定
+            (document.getElementById('form-format') as HTMLInputElement | HTMLSelectElement).value = 'ComicInfo';
         }
     );
 }
