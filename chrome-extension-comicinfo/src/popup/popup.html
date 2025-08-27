@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome Extension Popup</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="popup">
+        <form id="info-form">
+            <label>
+                Title:
+                <input type="text" id="form-title" name="title">
+            </label>
+            <label>
+                Series:
+                <input type="text" id="form-series" name="series">
+            </label>
+            <div class="manga-row">
+                <label>
+                    Number:
+                    <input type="number" id="form-number" name="number" min="1" step="1">
+                </label>
+                <label>
+                    AgeRating:
+                    <select id="form-agerating" name="agerating">
+                        <option value="Everyone">Everyone</option>
+                        <option value="Adults Only 18+">Adults Only 18+</option>
+                    </select>
+                </label>
+                <label>
+                    Manga:
+                    <select id="form-manga" name="manga">
+                        <option value="YesAndRightToLeft">YesAndRightToLeft</option>
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </label>
+            </div>
+            <div class="date-row">
+                <label>
+                    Year:
+                    <input type="number" id="form-year" name="year" min="1" step="1">
+                </label>
+                <label>
+                    Month:
+                    <input type="number" id="form-month" name="month" min="1" step="1">
+                </label>
+                <label>
+                    Day:
+                    <input type="number" id="form-day" name="day" min="1" step="1">
+                </label>
+            </div>
+            <label>
+                Writer:
+                <input type="text" id="form-writer" name="writer">
+            </label>
+            <label>
+                Summary:
+                <textarea id="form-summary" name="summary" rows="3"></textarea>
+            </label>
+            <label>
+                Tag:
+                <input type="text" id="form-tags" name="tag">
+            </label>
+            <label>
+                Publisher:
+                <input type="text" id="form-publisher" name="publisher">
+            </label>
+            <div class="format-rating-code-row">
+                <label>
+                    Format:
+                    <select id="form-format" name="format">
+                        <option value="ComicInfo">ComicInfo</option>
+                        <!-- <option value="NFO">NFO</option> -->
+                    </select>
+                </label>
+                <label>
+                    Rating:
+                    <input type="number" id="form-rating" name="rating" min="0.0" max="10.0" step="0.1" value="6.0" disabled>
+                </label>
+                <label>
+                    Code:
+                    <input type="text" id="form-code" name="code" disabled>
+                </label>
+            </div>
+        </form>
+        <div class="button-row">
+            <button id="loading-btn" class="actionbtn" type="button">ローディング</button>
+            <button id="dl-btn" class="actionbtn" type="button">ダウンロード</button>
+        </div>
+    </div>
+    <script src="../../dist/popup/popup.js"></script>
+</body>
+</html>

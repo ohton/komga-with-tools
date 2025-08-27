@@ -1,0 +1,30 @@
+{
+  "name": "chrome-extension-template",
+  "version": "1.0.0",
+  "description": "A template for a Chrome extension using TypeScript.",
+  "main": "src/background.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "lint": "eslint .",
+    "test": "jest"
+  },
+  "keywords": [
+    "chrome",
+    "extension",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.1.4",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "jest": "^26.0.0",
+    "prettier": "^3.6.2",
+    "typescript": "^4.0.0"
+  }
+}
