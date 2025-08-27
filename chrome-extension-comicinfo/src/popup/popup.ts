@@ -457,6 +457,123 @@ async function autofillFromMelonbooks() {
     );
 }
 
+// DMM動画(AV)ページから情報を取得してフォームにセット
+async function autofillFromDmmVideo() {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab.id) return;
+
+    chrome.scripting.executeScript(
+        {
+            target: { tabId: tab.id },
+            func: () => {
+                // タイトル
+                let title = '';
+                const titleElem = document.querySelector('h1>span');
+                if (titleElem) {
+                    // 子要素のhtmlタグを除いたtextContentをtitleに設定
+                    title = Array.from(titleElem.childNodes)
+                        .filter(node => node.nodeType === Node.TEXT_NODE)
+                        .map(node => node.textContent?.trim())
+                        .join(' ') || '';
+                }
+
+                // 配信開始日
+                let year = '', month = '', day = '';
+                const dateElem = Array.from(document.querySelectorAll('th'))
+                    .find(th => th.textContent?.includes('配信開始日'));
+                const dateText = dateElem?.nextElementSibling?.textContent?.trim();
+                if (dateText) {
+                    const m = dateText.match(/(\d{4})[/. -](\d{1,2})[/. -](\d{1,2})/);
+                    if (m) {
+                        year = String(parseInt(m[1], 10));
+                        month = String(parseInt(m[2], 10));
+                        day = String(parseInt(m[3], 10));
+                    }
+                }
+
+                // 出演者
+                let writer = '';
+                const castElem = Array.from(document.querySelectorAll('th'))
+                    .find(th => th.textContent?.includes('出演者'));
+                if (castElem) {
+                    writer = Array.from(castElem.nextElementSibling?.querySelectorAll('a') || [])
+                        .map(a => a.textContent?.trim() || '')
+                        .filter(Boolean)
+                        .join(', ');
+                }
+
+                // ジャンル(タグ)
+                let tag = '';
+                const genreElem = Array.from(document.querySelectorAll('th'))
+                    .find(th => th.textContent?.includes('ジャンル'));
+                if (genreElem) {
+                    tag = Array.from(genreElem.nextElementSibling?.querySelectorAll('a') || [])
+                        .map(a => a.textContent?.trim() || '')
+                        .filter(Boolean)
+                        .join(', ');
+                }
+
+                // シリーズ
+                let series = '';
+                const seriesElem = Array.from(document.querySelectorAll('th'))
+                    .find(th => th.textContent?.includes('シリーズ'));
+                if (seriesElem) {
+                    series = Array.from(seriesElem.nextElementSibling?.querySelectorAll('a') || [])
+                        .map(a => a.textContent?.trim() || '')
+                        .filter(Boolean)
+                        .join(', ');
+                }
+
+                // Summary: ページURL
+                const summary = location.href;
+
+                // メーカー名（Publisher）
+                let publisher = '';
+                const makerElem = Array.from(document.querySelectorAll('th'))
+                    .find(th => th.textContent?.includes('メーカー'));
+                if (makerElem) {
+                    publisher = makerElem.nextElementSibling?.textContent?.trim() || '';
+                }
+
+                // メーカー品番（form-code用）
+                let code = '';
+                const codeElem = Array.from(document.querySelectorAll('th'))
+                    .find(th => th.textContent?.includes('メーカー品番'));
+                if (codeElem) {
+                    code = codeElem.nextElementSibling?.textContent?.trim() || '';
+                }
+
+                const number = '1';
+                const ageRating = 'Adults Only 18+';
+                const manga = 'No';
+
+                return {
+                    title, year, month, day, writer, tag, summary, series, publisher, number, ageRating, manga, code
+                };
+            },
+        },
+        (results) => {
+            if (!results || !results[0] || !results[0].result) return;
+            const data = results[0].result;
+            (document.getElementById('form-title') as HTMLInputElement).value = data.title;
+            (document.getElementById('form-year') as HTMLInputElement).value = data.year;
+            (document.getElementById('form-month') as HTMLInputElement).value = data.month;
+            (document.getElementById('form-day') as HTMLInputElement).value = data.day;
+            (document.getElementById('form-writer') as HTMLInputElement).value = data.writer;
+            (document.getElementById('form-tags') as HTMLInputElement).value = data.tag;
+            (document.getElementById('form-summary') as HTMLTextAreaElement).value = data.summary;
+            (document.getElementById('form-series') as HTMLInputElement).value = data.series;
+            (document.getElementById('form-publisher') as HTMLInputElement).value = data.publisher;
+            (document.getElementById('form-number') as HTMLInputElement).value = data.number;
+            (document.getElementById('form-agerating') as HTMLSelectElement).value = data.ageRating;
+            (document.getElementById('form-manga') as HTMLSelectElement).value = data.manga;
+            (document.getElementById('form-code') as HTMLInputElement).value = data.code;
+            // form-formatを常に'NFO'に設定
+            (document.getElementById('form-format') as HTMLInputElement | HTMLSelectElement).value = 'NFO';
+        }
+    );
+}
+
 // ボタンにイベントを追加
 async function handleAutofill() {
     // 現在のタブのURLを取得
@@ -470,6 +587,8 @@ async function handleAutofill() {
         autofillFromToranoana();
     } else if (url.startsWith('https://www.melonbooks.co.jp/detail/detail.php?product_id=')) {
         autofillFromMelonbooks();
+    } else if (url.startsWith('https://video.dmm.co.jp/av/content/?id=')) {
+        autofillFromDmmVideo();
     } else {
         const alertDiv = document.getElementById('alert-message');
         if (alertDiv) {
@@ -503,38 +622,26 @@ function downloadXmlFile(fields: {
     rating: string,
     code: string,
 }, onComplete?: () => void) {
-    const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
-<ComicInfo>
-  <Year>${fields.year}</Year>
-  <Month>${fields.month}</Month>
-  <Day>${fields.day}</Day>
-  <Writer>${fields.writer}</Writer>
-  <Penciller/>
-  <Inker/>
-  <Colorist/>
-  <Letterer/>
-  <CoverArtist/>
-  <Editor/>
-  <Translator/>
-  <Title>${fields.title}</Title>
-  <Summary>${fields.summary}</Summary>
-  <Number>${fields.number}</Number>
-  <Tags>${fields.tags}</Tags>
-  <GTIN/>
-  <Series>${fields.series}</Series>
-  <Volume>${fields.volume}</Volume>
-  <AgeRating>${fields.ageRating}</AgeRating>
-  <Publisher>${fields.publisher}</Publisher>
-  <Manga>YesAndRightToLeft</Manga>
-  <Genre>${fields.genre}</Genre>
-  <LanguageISO>ja</LanguageISO>
-</ComicInfo>`;
-    // ファイル名生成: [writer] title number
-    const writerPart = fields.writer.split(',').map(w => w.trim()).filter(Boolean).join('×');
-    const titlePart = fields.title.replace(/[\\/:*?"<>|]/g, ''); // ファイル名に使えない文字を除去
-    const numberPart = fields.number.padStart(2, '0');
-    const filename = `[${writerPart}] ${titlePart} ${numberPart}.xml`;
-
+    // FileFormatを判定
+    const isNFO = fields.format === 'NFO';
+    let xmlContent = '';
+    let filename = '';
+    if (isNFO) {
+        // NFO形式xml生成
+        const actors = fields.writer.split(',').map(w => w.trim()).filter(Boolean);
+        xmlContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<movie>\n  <title>${fields.code} ${fields.title}</title>\n  <originaltitle>${fields.title}</originaltitle>\n  <year>${fields.year}</year>\n  <ratings/>\n  <userrating>0</userrating>\n  <top250>0</top250>\n  <plot>${fields.summary}</plot>\n  <outline>${fields.summary}</outline>\n  <id/>\n  <tmdbid/>\n  <premiered>${fields.year}-${fields.month.padStart(2, '0')}-${fields.day.padStart(2, '0')}</premiered>\n  <watched>false</watched>\n  <playcount>0</playcount>\n  <genre>chrome extension</genre>\n  <genre>アダルトビデオ</genre>\n${actors.map(actor => `  <actor>\n    <name>${actor}</name>\n  </actor>`).join('\n')}\n  <trailer/>\n  <languages/>\n</movie>`;
+        // ファイル名生成: Code.xml
+        const idValue = fields.code;
+        filename = idValue ? `${idValue}.nfo` : 'movie.nfo';
+    } else {
+        // 通常ComicInfo形式
+        xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<ComicInfo>\n  <Year>${fields.year}</Year>\n  <Month>${fields.month}</Month>\n  <Day>${fields.day}</Day>\n  <Writer>${fields.writer}</Writer>\n  <Penciller/>\n  <Inker/>\n  <Colorist/>\n  <Letterer/>\n  <CoverArtist/>\n  <Editor/>\n  <Translator/>\n  <Title>${fields.title}</Title>\n  <Summary>${fields.summary}</Summary>\n  <Number>${fields.number}</Number>\n  <Tags>${fields.tags}</Tags>\n  <GTIN/>\n  <Series>${fields.series}</Series>\n  <Volume>${fields.volume}</Volume>\n  <AgeRating>${fields.ageRating}</AgeRating>\n  <Publisher>${fields.publisher}</Publisher>\n  <Manga>YesAndRightToLeft</Manga>\n  <Genre>${fields.genre}</Genre>\n  <LanguageISO>ja</LanguageISO>\n</ComicInfo>`;
+        // ファイル名生成: [writer] title number
+        const writerPart = fields.writer.split(',').map(w => w.trim()).filter(Boolean).join('×');
+        const titlePart = fields.title.replace(/[\\/:*?"<>|]/g, '');
+        const numberPart = fields.number.padStart(2, '0');
+        filename = `[${writerPart}] ${titlePart} ${numberPart}.xml`;
+    }
     // Blobをbase64に変換してbackground経由でダウンロード
     const blob = new Blob([xmlContent], { type: 'application/xml' });
     const reader = new FileReader();
