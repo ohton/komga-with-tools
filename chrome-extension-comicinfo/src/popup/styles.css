@@ -1,3 +1,23 @@
+/* alert message styles */
+#alert-message {
+    display: none;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    min-width: 300px;
+    max-width: 90%;
+    background: #ffeaea;
+    color: #d32f2f;
+    border: 1px solid #d32f2f;
+    border-radius: 4px;
+    padding: 12px 18px;
+    font-size: 15px;
+    white-space: pre-line;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    text-align: center;
+}
 html,
 body {
     width: 450px;
@@ -15,6 +35,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 #info-form {

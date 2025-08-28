@@ -9,4 +9,20 @@ chrome.runtime.onStartup.addListener(() => {
     console.log("拡張機能が起動しました。");
 });
 
-// ここに他のイベントリスナーやバックグラウンド処理を追加できます。
+
+// popupからのダウンロードリクエストを受けてchrome.downloads.downloadで保存
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'download-xml') {
+        const { filename, base64 } = message;
+        const url = `data:application/xml;base64,${base64}`;
+        chrome.downloads.download({
+            url,
+            filename,
+            saveAs: false
+        }, () => {
+            sendResponse();
+        });
+        // 非同期応答を明示
+        return true;
+    }
+});

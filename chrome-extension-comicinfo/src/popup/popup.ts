@@ -471,7 +471,11 @@ async function handleAutofill() {
     } else if (url.startsWith('https://www.melonbooks.co.jp/detail/detail.php?product_id=')) {
         autofillFromMelonbooks();
     } else {
-        alert('パース非対応のページです。\nDMMブックス・DMM同人・虎の穴・メロンブックスの詳細ページで実行してください。');
+        const alertDiv = document.getElementById('alert-message');
+        if (alertDiv) {
+            alertDiv.textContent = 'パース非対応のページです。\nDMMブックス・DMM同人・虎の穴・メロンブックス・DMM動画の詳細ページで実行してください。';
+            alertDiv.style.display = 'block';
+        }
     }
 }
 
@@ -498,7 +502,7 @@ function downloadXmlFile(fields: {
     format: string,
     rating: string,
     code: string,
-}) {
+}, onComplete?: () => void) {
     const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <ComicInfo>
   <Year>${fields.year}</Year>
@@ -525,23 +529,26 @@ function downloadXmlFile(fields: {
   <Genre>${fields.genre}</Genre>
   <LanguageISO>ja</LanguageISO>
 </ComicInfo>`;
-    const blob = new Blob([xmlContent], { type: 'application/xml' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-
     // ファイル名生成: [writer] title number
     const writerPart = fields.writer.split(',').map(w => w.trim()).filter(Boolean).join('×');
     const titlePart = fields.title.replace(/[\\/:*?"<>|]/g, ''); // ファイル名に使えない文字を除去
     const numberPart = fields.number.padStart(2, '0');
     const filename = `[${writerPart}] ${titlePart} ${numberPart}.xml`;
 
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Blobをbase64に変換してbackground経由でダウンロード
+    const blob = new Blob([xmlContent], { type: 'application/xml' });
+    const reader = new FileReader();
+    reader.onload = function() {
+        const base64 = reader.result?.toString().split(',')[1];
+        chrome.runtime.sendMessage({
+            type: 'download-xml',
+            filename,
+            base64
+        }, () => {
+            if (onComplete) onComplete();
+        });
+    };
+    reader.readAsDataURL(blob);
 }
 
 const btn_dl = document.getElementById('dl-btn');
@@ -571,8 +578,9 @@ if (btn_dl) {
             code: getValue('form-code'),
         };
         chrome.tabs.query({ active: true, currentWindow: true }, () => {
-            downloadXmlFile(fields);
-            window.close(); // ダウンロード後にポップアップを閉じる
+            downloadXmlFile(fields, () => {
+                window.close();
+            });
         });
     });
 }

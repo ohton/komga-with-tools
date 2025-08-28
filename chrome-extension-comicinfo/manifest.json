@@ -4,7 +4,7 @@
   "version": "1.0",
   "description": "Create ComicInfo.xml from web pages",
   "permissions": [
-    "activeTab", "scripting"
+    "activeTab", "scripting", "downloads"
   ],
   "background": {
     "service_worker": "dist/background.js"
