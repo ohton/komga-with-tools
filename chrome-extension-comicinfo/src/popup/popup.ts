@@ -534,16 +534,18 @@ function downloadXmlFile(fields: {
     const titlePart = fields.title.replace(/[\\/:*?"<>|]/g, ''); // ファイル名に使えない文字を除去
     const numberPart = fields.number.padStart(2, '0');
     const filename = `[${writerPart}] ${titlePart} ${numberPart}.xml`;
+    const mimeType = 'application/xml';
 
     // Blobをbase64に変換してbackground経由でダウンロード
-    const blob = new Blob([xmlContent], { type: 'application/xml' });
+    const blob = new Blob([xmlContent], { type: mimeType });
     const reader = new FileReader();
     reader.onload = function() {
         const base64 = reader.result?.toString().split(',')[1];
         chrome.runtime.sendMessage({
             type: 'download-xml',
             filename,
-            base64
+            base64,
+            mimeType
         }, () => {
             if (onComplete) onComplete();
         });

@@ -13,8 +13,8 @@ chrome.runtime.onStartup.addListener(() => {
 // popupからのダウンロードリクエストを受けてchrome.downloads.downloadで保存
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'download-xml') {
-        const { filename, base64 } = message;
-        const url = `data:application/xml;base64,${base64}`;
+        const { filename, base64, mimeType } = message;
+        const url = `data:${mimeType || 'application/xml'};base64,${base64}`;
         chrome.downloads.download({
             url,
             filename,
