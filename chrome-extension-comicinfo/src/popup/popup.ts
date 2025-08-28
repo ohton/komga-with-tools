@@ -626,22 +626,24 @@ function downloadXmlFile(fields: {
     const isNFO = fields.format === 'NFO';
     let xmlContent = '';
     let filename = '';
-    const mimeType = 'application/xml';
+    let mimeType = 'application/xml';
     if (isNFO) {
         // NFO形式xml生成
         const actors = fields.writer.split(',').map(w => w.trim()).filter(Boolean);
         xmlContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<movie>\n  <title>${fields.code} ${fields.title}</title>\n  <originaltitle>${fields.title}</originaltitle>\n  <year>${fields.year}</year>\n  <ratings/>\n  <userrating>0</userrating>\n  <top250>0</top250>\n  <plot>${fields.summary}</plot>\n  <outline>${fields.summary}</outline>\n  <id/>\n  <tmdbid/>\n  <premiered>${fields.year}-${fields.month.padStart(2, '0')}-${fields.day.padStart(2, '0')}</premiered>\n  <watched>false</watched>\n  <playcount>0</playcount>\n  <genre>chrome extension</genre>\n  <genre>アダルトビデオ</genre>\n${actors.map(actor => `  <actor>\n    <name>${actor}</name>\n  </actor>`).join('\n')}\n  <trailer/>\n  <languages/>\n</movie>`;
-        // ファイル名生成: Code.xml
+        // ファイル名生成: Code.nfo
         const idValue = fields.code;
         filename = idValue ? `${idValue}.nfo` : 'movie.nfo';
+        mimeType = 'application/x-nfo';
     } else {
         // 通常ComicInfo形式
         xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<ComicInfo>\n  <Year>${fields.year}</Year>\n  <Month>${fields.month}</Month>\n  <Day>${fields.day}</Day>\n  <Writer>${fields.writer}</Writer>\n  <Penciller/>\n  <Inker/>\n  <Colorist/>\n  <Letterer/>\n  <CoverArtist/>\n  <Editor/>\n  <Translator/>\n  <Title>${fields.title}</Title>\n  <Summary>${fields.summary}</Summary>\n  <Number>${fields.number}</Number>\n  <Tags>${fields.tags}</Tags>\n  <GTIN/>\n  <Series>${fields.series}</Series>\n  <Volume>${fields.volume}</Volume>\n  <AgeRating>${fields.ageRating}</AgeRating>\n  <Publisher>${fields.publisher}</Publisher>\n  <Manga>YesAndRightToLeft</Manga>\n  <Genre>${fields.genre}</Genre>\n  <LanguageISO>ja</LanguageISO>\n</ComicInfo>`;
-        // ファイル名生成: [writer] title number
+        // ファイル名生成: [writer] title number.xml
         const writerPart = fields.writer.split(',').map(w => w.trim()).filter(Boolean).join('×');
         const titlePart = fields.title.replace(/[\\/:*?"<>|]/g, '');
         const numberPart = fields.number.padStart(2, '0');
         filename = `[${writerPart}] ${titlePart} ${numberPart}.xml`;
+        mimeType = 'application/xml';
     }
     // Blobをbase64に変換してbackground経由でダウンロード
     const blob = new Blob([xmlContent], { type: mimeType });
