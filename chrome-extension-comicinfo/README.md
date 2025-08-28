@@ -39,7 +39,7 @@ chrome-extension-comicinfo/
 1. **リポジトリをクローン**
    ```zsh
    git clone <repository-url>
-   cd komga_with_tools/chrome-extension-comicinfo
+   cd komga-with-tools/chrome-extension-comicinfo
    ```
 2. **依存パッケージをインストール**
    ```zsh
@@ -72,8 +72,3 @@ chrome-extension-comicinfo/
 - ページから書誌情報（タイトル、著者、サークル、タグ、シリーズ、発行日など）を抽出
 - ComicInfo.xml形式でダウンロード
 - 年齢区分（AgeRating）を自動判定
-
-
-## ライセンス
-
-MIT License
