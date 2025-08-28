@@ -11,9 +11,17 @@
 
 ### 利用方法
 
-1. `chrome-extension-comicinfo.crx` を Chrome にドラッグ＆ドロップして拡張機能をインストール
-2. Komga の Web UI で拡張機能を利用
-3. 書誌情報の取得・編集・保存が可能
+#### chrome-extension-comicinfo
+
+1. releaseから `chrome-extension-comicinfo.vXXX.zip` をダウンロードし、任意の場所に展開する
+2. Chromeで `chrome://extensions/` を開く
+3. 「デベロッパーモード」をONにする
+4. 「パッケージ化されていない拡張機能を読み込む」→ ZIPの展開先ディレクトリを選択
+5. 対応サイトの詳細ページを開く
+6. 拡張機能アイコンをクリックし、ポップアップを表示
+7. 自動または「ローディング」ボタンでフォームに情報を自動入力
+8. 項目を手動編集（特にNumber(巻数)は自動入力未対応なので要修正）
+9. 「ダウンロード」ボタンでComicInfo形式のxmlファイルをダウンロード
 
 ### 開発・ビルド
 
