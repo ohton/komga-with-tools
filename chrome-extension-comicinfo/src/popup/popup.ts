@@ -462,6 +462,7 @@ async function handleAutofill() {
     // 現在のタブのURLを取得
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     const url = tab?.url || '';
+
     if (url.startsWith('https://www.dmm.co.jp/dc/doujin/-/detail/=/cid=')) {
         autofillFromDmmDoujin();
     } else if (url.startsWith('https://book.dmm.co.jp/product/') || url.startsWith('https://book.dmm.com/product/')) {
@@ -471,11 +472,7 @@ async function handleAutofill() {
     } else if (url.startsWith('https://www.melonbooks.co.jp/detail/detail.php?product_id=')) {
         autofillFromMelonbooks();
     } else {
-        const alertDiv = document.getElementById('alert-message');
-        if (alertDiv) {
-            alertDiv.textContent = 'パース非対応のページです。\nDMMブックス・DMM同人・虎の穴・メロンブックス・DMM動画の詳細ページで実行してください。';
-            alertDiv.style.display = 'block';
-        }
+        showAlertMessage('パース非対応のページです。\nDMMブックス・DMM同人・虎の穴・メロンブックス・DMM動画の詳細ページで実行してください。');
     }
 }
 
@@ -484,6 +481,18 @@ document.getElementById('loading-btn')?.addEventListener('click', handleAutofill
 document.addEventListener('DOMContentLoaded', () => {
     handleAutofill();
 });
+
+// alert-messageを表示
+function showAlertMessage(message: string, delay = 2000) {
+    const alertDiv = document.getElementById('alert-message');
+    if (!alertDiv) return;
+    alertDiv.textContent = message;
+    alertDiv.style.display = 'block';
+    setTimeout(() => {
+        alertDiv.style.display = 'none';
+        alertDiv.textContent = '';
+    }, delay);
+}
 
 function downloadXmlFile(fields: {
     title: string,
@@ -539,7 +548,7 @@ function downloadXmlFile(fields: {
     // Blobをbase64に変換してbackground経由でダウンロード
     const blob = new Blob([xmlContent], { type: mimeType });
     const reader = new FileReader();
-    reader.onload = function() {
+    reader.onload = function () {
         const base64 = reader.result?.toString().split(',')[1];
         chrome.runtime.sendMessage({
             type: 'download-xml',
