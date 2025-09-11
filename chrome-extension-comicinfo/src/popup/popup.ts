@@ -472,7 +472,7 @@ async function handleAutofill() {
     } else if (url.startsWith('https://www.melonbooks.co.jp/detail/detail.php?product_id=')) {
         autofillFromMelonbooks();
     } else {
-        showAlertMessage('パース非対応のページです。\nDMMブックス・DMM同人・虎の穴・メロンブックス・DMM動画の詳細ページで実行してください。');
+        showAlertMessage('パース非対応のページです。\nDMMブックス・DMM同人・虎の穴・メロンブックスの詳細ページで実行してください。');
     }
 }
 
