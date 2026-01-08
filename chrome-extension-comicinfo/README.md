@@ -42,13 +42,32 @@ chrome-extension-comicinfo/
    cd komga-with-tools/chrome-extension-comicinfo
    ```
 2. **依存パッケージをインストール**
+   
+   **Volta（Node バージョン管理 — 任意だが推奨）**
+
+   macOS/Homebrew を使ったインストール例:
+
+   ```zsh
+   brew install volta
+   volta setup
+   ```
+
+   (異なるnode/npmを使いたい場合は `volta pin tool@version` でpackage.jsonを更新してください)
+
+   **依存パッケージをインストール**
+   
+   (volta を導入していない場合、node, nvmを別途インストールしてください)
+ 
    ```zsh
    npm install
    ```
+
 3. **TypeScriptでビルド**
+
    ```zsh
    npm run build
    ```
+
 4. **Chromeに拡張機能を読み込む**
    - Chromeで `chrome://extensions/` を開く
    - 「デベロッパーモード」をON
@@ -56,6 +75,8 @@ chrome-extension-comicinfo/
 
 
 ## 使い方
+   
+
 
 1. 対応サイトの詳細ページを開く
 2. 拡張機能アイコンをクリックし、ポップアップを表示
