@@ -108,6 +108,128 @@ async function autofillFromDmmDoujin() {
         }
     );
 }
+
+// Amazon.co.jp 商品ページ（書籍/eBook）から情報を取得してフォームにセット
+async function autofillFromAmazon() {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab.id) return;
+
+    chrome.scripting.executeScript(
+        {
+            target: { tabId: tab.id },
+            func: () => {
+                const title = (document.getElementById('productTitle')?.textContent || document.querySelector('h1#title')?.textContent || '').trim();
+
+                // Authors
+                const authorElems = Array.from(document.querySelectorAll('#bylineInfo a, .contributorNameID, .author a')) as HTMLElement[];
+                let writer = authorElems.map(a => a.textContent?.trim() || '').filter(Boolean).join(', ');
+
+                // Amazon書籍ページにはタグ表記がないため空にする
+                const tag = '';
+
+                // Registration block: parse publisher and release date from detail bullets
+                let publisher = '';
+                let year = '', month = '', day = '';
+                let asin = '';
+                const detailItems = Array.from(document.querySelectorAll('#detailBullets_feature_div li')) as HTMLElement[];
+                detailItems.forEach(li => {
+                    const boldSpan = li.querySelector('.a-text-bold');
+                    const bold = boldSpan?.textContent || '';
+                    const spanList = Array.from(li.querySelectorAll('span'));
+                    let value = '';
+                    if (spanList.length > 0) {
+                        for (let i = spanList.length - 1; i >= 0; i--) {
+                            const s = spanList[i];
+                            if (s === boldSpan) continue;
+                            const txt = s.textContent?.trim() || '';
+                            if (txt) { value = txt; break; }
+                        }
+                    }
+                    if (/ASIN/.test(bold)) {
+                        if (value) asin = value.trim();
+                    }
+                    if (/出版社/.test(bold)) {
+                        // value may be like: "光プロダクション (2025/3/3)"
+                        const m = value.match(/^(.+?)\s*\((\d{4}\/\d{1,2}\/\d{1,2})\)\s*$/);
+                        if (m) {
+                            publisher = m[1].trim();
+                            const dm = m[2].match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+                            if (dm) {
+                                year = String(parseInt(dm[1], 10));
+                                month = String(parseInt(dm[2], 10));
+                                day = String(parseInt(dm[3], 10));
+                            }
+                        } else if (value) {
+                            publisher = value.replace(/\s*\(.+\)\s*$/, '').trim();
+                        }
+                    }
+                    if (/発売日/.test(bold)) {
+                        const dm = value.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+                        if (dm) {
+                            year = String(parseInt(dm[1], 10));
+                            month = String(parseInt(dm[2], 10));
+                            day = String(parseInt(dm[3], 10));
+                        }
+                    }
+                });
+
+                // Series and Number: prefer seriesBulletWidget, fallback to page body
+                let series = '';
+                let number = '1';
+                const seriesAnchor = document.querySelector('#seriesBulletWidget_feature_div a') as HTMLElement | null;
+                if (seriesAnchor) {
+                    const stext = seriesAnchor.textContent?.trim() || '';
+                    const serMatch = stext.match(/全\s*\d+\s*巻中第\s*(\d+)\s*巻\s*[:：]?\s*(.+)/);
+                    if (serMatch) {
+                        number = String(parseInt(serMatch[1], 10));
+                        series = serMatch[2].trim();
+                    } else {
+                        const serMatch2 = stext.match(/第\s*(\d+)\s*巻\s*[:：]?\s*(.+)/);
+                        if (serMatch2) {
+                            number = String(parseInt(serMatch2[1], 10));
+                            series = serMatch2[2].trim();
+                        } else {
+                            series = stext;
+                        }
+                    }
+                } else {
+                    const combined = document.body.textContent || '';
+                    const seriesMatch = combined.match(/シリーズ[:：\s]*([^\n]+)/);
+                    if (seriesMatch) series = seriesMatch[1].trim();
+                }
+
+                // Summary: 商品ページのURL - '?'以降のクエリパラメータを除去 ASIN記載
+                const summary = location.href.split('?')[0] + '\nASIN: ' + asin;
+
+                // writer内のスペースを削除
+                writer = writer.replace(/\s+/g, '');
+
+                // 固定値
+                const ageRating = 'Everyone';
+                const manga = 'YesAndRightToLeft';
+
+                return { title, year, month, day, writer, tag, summary, series, publisher, number, ageRating, manga };
+            },
+        },
+        (results) => {
+            if (!results || !results[0] || !results[0].result) return;
+            const data = results[0].result;
+            (document.getElementById('form-title') as HTMLInputElement).value = data.title;
+            (document.getElementById('form-year') as HTMLInputElement).value = data.year;
+            (document.getElementById('form-month') as HTMLInputElement).value = data.month;
+            (document.getElementById('form-day') as HTMLInputElement).value = data.day;
+            (document.getElementById('form-writer') as HTMLInputElement).value = data.writer;
+            (document.getElementById('form-tags') as HTMLInputElement).value = data.tag;
+            (document.getElementById('form-summary') as HTMLTextAreaElement).value = data.summary;
+            (document.getElementById('form-series') as HTMLInputElement).value = data.series;
+            (document.getElementById('form-publisher') as HTMLInputElement).value = data.publisher;
+            (document.getElementById('form-number') as HTMLInputElement).value = data.number;
+            (document.getElementById('form-agerating') as HTMLSelectElement).value = data.ageRating;
+            (document.getElementById('form-manga') as HTMLSelectElement).value = data.manga;
+            (document.getElementById('form-format') as HTMLInputElement | HTMLSelectElement).value = 'ComicInfo';
+        }
+    );
+}
 // FANZAブックス（DMMブックス）商品ページから情報を取得してフォームにセット
 async function autofillFromDmmFanzaBooks() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -471,8 +593,10 @@ async function handleAutofill() {
         autofillFromToranoana();
     } else if (url.startsWith('https://www.melonbooks.co.jp/detail/detail.php?product_id=')) {
         autofillFromMelonbooks();
+    } else if (url.startsWith('https://www.amazon.co.jp/gp/product/')) {
+        autofillFromAmazon();
     } else {
-        showAlertMessage('パース非対応のページです。\nDMMブックス・DMM同人・虎の穴・メロンブックスの詳細ページで実行してください。');
+        showAlertMessage('パース非対応のページです。\nDMMブックス・DMM同人・虎の穴・メロンブックス・Amazonの詳細ページで実行してください。');
     }
 }
 
