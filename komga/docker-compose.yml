@@ -1,0 +1,21 @@
+version: '3.3'
+services:
+  komga:
+    image: gotson/komga:latest
+    container_name: komgae
+    volumes:
+      - type: bind
+        source: ./config
+        target: /config
+      - type: bind
+        source: ./books
+        target: /Volumes/books
+      - type: bind
+        source: /etc/timezone #alternatively you can use a TZ environment variable, like TZ=Europe/London
+        target: /etc/timezone
+        read_only: true
+    ports:
+      - 25600:25600
+    user: "1000:1000"
+    # remove the whole environment section if you don't need it
+    restart: unless-stopped
