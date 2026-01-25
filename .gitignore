@@ -32,3 +32,7 @@ Icon?
 *.local
 *.crx
 *.pem
+
+/komga/config/*
+/komga/books/*
+!.gitkeep
