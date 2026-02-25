@@ -2,7 +2,7 @@ version: '3.3'
 services:
   komga:
     image: gotson/komga:latest
-    container_name: komgae
+    container_name: komga
     volumes:
       - type: bind
         source: ./config
@@ -13,6 +13,10 @@ services:
       - type: bind
         source: /etc/timezone #alternatively you can use a TZ environment variable, like TZ=Europe/London
         target: /etc/timezone
+        read_only: true
+      - type: bind
+        source: /etc/localtime #alternatively you can use a TZ environment variable, like TZ=Europe/London
+        target: /etc/localtime
         read_only: true
     ports:
       - 25600:25600
